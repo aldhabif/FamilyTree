@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>شجرتنا</title>
+  <style>
+    :root{
+      --bg:#0f172a;--card:#111827;--muted:#94a3b8;--text:#e5e7eb;--line:#334155;
+      --accent:#2563eb;--accent2:#16a34a;--danger:#dc2626;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .app{max-width:1200px;margin:0 auto;padding:16px}
+    .topbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .title h1{margin:0;font-size:26px}.title p{margin:6px 0 0;color:var(--muted);font-size:13px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    button,.btn,input,select{font:inherit}
+    button,.btn{border:0;border-radius:12px;padding:10px 14px;background:var(--accent);color:#fff;cursor:pointer}
+    button.secondary{background:#1f2937;border:1px solid var(--line)}
+    button.success{background:var(--accent2)} button.danger{background:var(--danger)}
+    .grid{display:grid;grid-template-columns:340px 1fr;gap:14px}
+    @media (max-width: 900px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px}
+    .card h2{margin:0 0 12px;font-size:18px}
+    .field{margin-bottom:10px}.field label{display:block;margin-bottom:6px;color:var(--muted);font-size:13px}
+    .field input,.field select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#0b1220;color:var(--text)}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .stat{background:#0b1220;border:1px solid var(--line);border-radius:14px;padding:12px}
+    .stat .n{font-size:22px;font-weight:700}.stat .l{font-size:12px;color:var(--muted);margin-top:4px}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+    .toolbar input{flex:1;min-width:180px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#0b1220;color:var(--text)}
+    .tree-wrap{overflow:auto;border:1px dashed var(--line);border-radius:16px;padding:18px;min-height:420px;background:#0b1220}
+    .gen{margin-bottom:22px}.gen-title{font-size:13px;color:var(--muted);margin-bottom:10px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+    .person{min-width:180px;max-width:220px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px}
+    .person.male{border-color:rgba(59,130,246,.45)} .person.female{border-color:rgba(236,72,153,.45)}
+    .person .name{font-weight:700;font-size:16px;margin-bottom:6px}
+    .person .meta{font-size:12px;color:var(--muted);line-height:1.7}
+    .person .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;margin-bottom:8px}
+    .person.male .badge{background:rgba(59,130,246,.16);color:#93c5fd}
+    .person.female .badge{background:rgba(236,72,153,.16);color:#f9a8d4}
+    .person .mini-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+    .person .mini-actions button{padding:7px 9px;border-radius:10px;font-size:12px}
+    .list{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:14px;background:#0b1220}
+    .list-item{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid rgba(51,65,85,.55);cursor:pointer}
+    .list-item:last-child{border-bottom:0}.list-item:hover{background:#0f1a31}
+    .small{font-size:12px;color:var(--muted)} .empty{color:var(--muted);text-align:center;padding:30px 10px}
+    .footer{margin-top:10px;font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="title">
+        <h1>شجرتنا</h1>
+        <p>نسخة أولية لشجرة عائلة عربية تعمل محليًا على الجهاز بدون حساب.</p>
+      </div>
+      <div class="actions">
+        <button class="secondary" id="seedBtn">إضافة بيانات تجريبية</button>
+        <button class="secondary" id="exportBtn">تصدير JSON</button>
+        <label class="btn secondary" for="importInput" style="display:inline-block">استيراد JSON</label>
+        <input id="importInput" type="file" accept="application/json" hidden />
+        <button class="danger" id="clearBtn">مسح الكل</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <h2 id="formTitle">إضافة فرد</h2>
+          <div class="field"><label>الاسم الكامل</label><input id="name" placeholder="مثال: أحمد محمد علي" /></div>
+          <div class="field"><label>الجنس</label><select id="gender"><option value="male">ذكر</option><option value="female">أنثى</option></select></div>
+          <div class="field"><label>تاريخ الميلاد</label><input id="birthDate" type="date" /></div>
+          <div class="field"><label>الأب</label><select id="fatherId"><option value="">غير محدد</option></select></div>
+          <div class="field"><label>الأم</label><select id="motherId"><option value="">غير محدد</option></select></div>
+          <div class="field"><label>ملاحظات</label><input id="notes" placeholder="اختياري" /></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="success" id="saveBtn">حفظ</button>
+            <button class="secondary" id="cancelEditBtn" style="display:none">إلغاء التعديل</button>
+          </div>
+          <div class="footer">يمكنك ربط الفرد بالأب والأم لتكوين الشجرة تلقائيًا.</div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px">
+          <h2>إحصائيات سريعة</h2>
+          <div class="stats">
+            <div class="stat"><div class="n" id="statTotal">0</div><div class="l">إجمالي الأفراد</div></div>
+            <div class="stat"><div class="n" id="statMale">0</div><div class="l">الذكور</div></div>
+            <div class="stat"><div class="n" id="statFemale">0</div><div class="l">الإناث</div></div>
+            <div class="stat"><div class="n" id="statGenerations">0</div><div class="l">عدد الأجيال</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>قائمة الأفراد</h2>
+          <div class="list" id="peopleList"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="toolbar">
+            <input id="search" placeholder="ابحث بالاسم..." />
+            <button class="secondary" id="sortAgeBtn">ترتيب بالعمر</button>
+            <button class="secondary" id="sortNameBtn">ترتيب بالاسم</button>
+          </div>
+          <div class="tree-wrap" id="treeWrap"></div>
+          <div class="footer">العرض الحالي بسيط وعملي. لاحقًا نقدر نحوله إلى شجرة رسومية أكثر قربًا من التطبيقات المتخصصة.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'family_tree_app_v1';
+    let people = loadPeople();
+    let editingId = null;
+    let currentSort = 'generation';
+    const $ = (id) => document.getElementById(id);
+
+    function loadPeople(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');} catch{return []} }
+    function savePeople(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(people)); }
+    function uid(){ return 'p_' + Math.random().toString(36).slice(2,10); }
+    function findPerson(id){ return people.find(p => p.id === id); }
+    function ageFromDate(dateStr){
+      if(!dateStr) return '—';
+      const d = new Date(dateStr); if(Number.isNaN(d.getTime())) return '—';
+      const now = new Date(); let age = now.getFullYear() - d.getFullYear();
+      const m = now.getMonth() - d.getMonth();
+      if(m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
+      return age;
+    }
+    function getDepth(person, memo = {}){
+      if(!person) return 1;
+      if(memo[person.id]) return memo[person.id];
+      const father = findPerson(person.fatherId);
+      const mother = findPerson(person.motherId);
+      const parentDepth = Math.max(father ? getDepth(father, memo) : 0, mother ? getDepth(mother, memo) : 0);
+      memo[person.id] = parentDepth + 1;
+      return memo[person.id];
+    }
+    function getGenerationMap(){ const memo = {}; people.forEach(p => getDepth(p, memo)); return memo; }
+    function fillParentSelects(){
+      const fatherSel = $('fatherId'), motherSel = $('motherId');
+      fatherSel.innerHTML = '<option value="">غير محدد</option>';
+      motherSel.innerHTML = '<option value="">غير محدد</option>';
+      people.forEach(p => {
+        const option = `<option value="${p.id}">${escapeHtml(p.name)}</option>`;
+        if(p.gender === 'male') fatherSel.insertAdjacentHTML('beforeend', option);
+        if(p.gender === 'female') motherSel.insertAdjacentHTML('beforeend', option);
+      });
+    }
+    function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function resetForm(){
+      editingId = null; $('formTitle').textContent = 'إضافة فرد';
+      $('name').value = ''; $('gender').value = 'male'; $('birthDate').value = ''; $('fatherId').value = ''; $('motherId').value = ''; $('notes').value = '';
+      $('cancelEditBtn').style.display = 'none';
+    }
+    function editPerson(id){
+      const p = findPerson(id); if(!p) return;
+      editingId = id; $('formTitle').textContent = 'تعديل فرد';
+      $('name').value = p.name || ''; $('gender').value = p.gender || 'male'; $('birthDate').value = p.birthDate || '';
+      $('fatherId').value = p.fatherId || ''; $('motherId').value = p.motherId || ''; $('notes').value = p.notes || '';
+      $('cancelEditBtn').style.display = 'inline-block'; window.scrollTo({top:0, behavior:'smooth'});
+    }
+    function deletePerson(id){
+      if(!confirm('حذف هذا الفرد؟')) return;
+      people = people.map(p => ({...p, fatherId: p.fatherId === id ? '' : p.fatherId, motherId: p.motherId === id ? '' : p.motherId})).filter(p => p.id !== id);
+      savePeople(); render(); if(editingId === id) resetForm();
+    }
+    function renderList(){
+      const box = $('peopleList');
+      if(!people.length){ box.innerHTML = '<div class="empty">لا يوجد أفراد بعد</div>'; return; }
+      const arr = [...people].sort((a,b) => a.name.localeCompare(b.name, 'ar'));
+      box.innerHTML = arr.map(p => `
+        <div class="list-item" onclick="editPerson('${p.id}')">
+          <div><div>${escapeHtml(p.name)}</div><div class="small">العمر: ${ageFromDate(p.birthDate)} | ${p.gender === 'male' ? 'ذكر' : 'أنثى'}</div></div>
+          <div class="small">تعديل</div>
+        </div>`).join('');
+    }
+    function renderStats(){
+      const genMap = getGenerationMap();
+      $('statTotal').textContent = people.length;
+      $('statMale').textContent = people.filter(p => p.gender === 'male').length;
+      $('statFemale').textContent = people.filter(p => p.gender === 'female').length;
+      $('statGenerations').textContent = people.length ? Math.max(...Object.values(genMap)) : 0;
+    }
+    function personCard(p){
+      const father = findPerson(p.fatherId), mother = findPerson(p.motherId);
+      return `<div class="person ${p.gender}">
+          <div class="badge">${p.gender === 'male' ? 'ذكر' : 'أنثى'}</div>
+          <div class="name">${escapeHtml(p.name)}</div>
+          <div class="meta">العمر: ${ageFromDate(p.birthDate)}<br>الميلاد: ${p.birthDate || '—'}<br>الأب: ${father ? escapeHtml(father.name) : '—'}<br>الأم: ${mother ? escapeHtml(mother.name) : '—'}${p.notes ? `<br>ملاحظات: ${escapeHtml(p.notes)}` : ''}</div>
+          <div class="mini-actions">
+            <button class="secondary" onclick="editPerson('${p.id}')">تعديل</button>
+            <button class="danger" onclick="deletePerson('${p.id}')">حذف</button>
+          </div>
+        </div>`;
+    }
+    function renderTree(){
+      const wrap = $('treeWrap');
+      if(!people.length){ wrap.innerHTML = '<div class="empty">ابدأ بإضافة أول فرد في العائلة</div>'; return; }
+      const query = $('search').value.trim().toLowerCase(); const genMap = getGenerationMap(); let arr = [...people];
+      if(query) arr = arr.filter(p => p.name.toLowerCase().includes(query));
+      if(currentSort === 'age'){
+        arr.sort((a,b) => { const aa = ageFromDate(a.birthDate), bb = ageFromDate(b.birthDate); return (bb === '—' ? -999 : bb) - (aa === '—' ? -999 : aa); });
+      } else if(currentSort === 'name'){
+        arr.sort((a,b) => a.name.localeCompare(b.name,'ar'));
+      } else {
+        arr.sort((a,b) => (genMap[a.id] - genMap[b.id]) || a.name.localeCompare(b.name,'ar'));
+      }
+      const grouped = {};
+      arr.forEach(p => { const g = genMap[p.id] || 1; if(!grouped[g]) grouped[g] = []; grouped[g].push(p); });
+      wrap.innerHTML = Object.keys(grouped).sort((a,b)=>a-b).map(g => `<div class="gen"><div class="gen-title">الجيل ${g}</div><div class="row">${grouped[g].map(personCard).join('')}</div></div>`).join('');
+    }
+    function render(){ fillParentSelects(); renderList(); renderStats(); renderTree(); }
+
+    $('saveBtn').addEventListener('click', () => {
+      const name = $('name').value.trim(), gender = $('gender').value, birthDate = $('birthDate').value, fatherId = $('fatherId').value, motherId = $('motherId').value, notes = $('notes').value.trim();
+      if(!name){ alert('أدخل الاسم'); return; }
+      if(editingId){ people = people.map(p => p.id === editingId ? {...p, name, gender, birthDate, fatherId, motherId, notes} : p); }
+      else { people.push({id: uid(), name, gender, birthDate, fatherId, motherId, notes}); }
+      savePeople(); resetForm(); render();
+    });
+    $('cancelEditBtn').addEventListener('click', resetForm);
+    $('search').addEventListener('input', renderTree);
+    $('sortAgeBtn').addEventListener('click', () => { currentSort = 'age'; renderTree(); });
+    $('sortNameBtn').addEventListener('click', () => { currentSort = 'name'; renderTree(); });
+    $('exportBtn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(people, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob); const a = document.createElement('a');
+      a.href = url; a.download = 'family-tree-data.json'; a.click(); URL.revokeObjectURL(url);
+    });
+    $('importInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0]; if(!file) return;
+      try{
+        const text = await file.text(); const data = JSON.parse(text);
+        if(!Array.isArray(data)) throw new Error('Invalid format');
+        people = data; savePeople(); resetForm(); render(); alert('تم الاستيراد بنجاح');
+      } catch { alert('ملف غير صالح'); }
+      e.target.value = '';
+    });
+    $('clearBtn').addEventListener('click', () => {
+      if(!confirm('سيتم حذف جميع البيانات المحلية. هل أنت متأكد؟')) return;
+      people = []; savePeople(); resetForm(); render();
+    });
+    $('seedBtn').addEventListener('click', () => {
+      if(people.length && !confirm('سيتم إضافة بيانات تجريبية بجانب الحالية. متابعة؟')) return;
+      const grandpa = {id: uid(), name:'محمد علي حسن', gender:'male', birthDate:'1948-02-11', fatherId:'', motherId:'', notes:'الجد'};
+      const grandma = {id: uid(), name:'فاطمة سالم', gender:'female', birthDate:'1952-08-05', fatherId:'', motherId:'', notes:'الجدة'};
+      const father = {id: uid(), name:'أحمد محمد علي', gender:'male', birthDate:'1978-01-20', fatherId:grandpa.id, motherId:grandma.id, notes:''};
+      const mother = {id: uid(), name:'نورة عبدالله', gender:'female', birthDate:'1983-06-14', fatherId:'', motherId:'', notes:''};
+      const son = {id: uid(), name:'سلمان أحمد', gender:'male', birthDate:'2010-03-17', fatherId:father.id, motherId:mother.id, notes:''};
+      const daughter = {id: uid(), name:'ريم أحمد', gender:'female', birthDate:'2013-11-02', fatherId:father.id, motherId:mother.id, notes:''};
+      people.push(grandpa, grandma, father, mother, son, daughter); savePeople(); render();
+    });
+    window.editPerson = editPerson; window.deletePerson = deletePerson; render();
+  </script>
+</body>
+</html>
